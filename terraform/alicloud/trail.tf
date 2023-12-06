@@ -4,8 +4,8 @@ resource "alicloud_actiontrail_trail" "fail" {
   trail_name         = "action-trail"
   oss_write_role_arn = alicloud_ram_role.trail.arn
   oss_bucket_name    = alicloud_oss_bucket.trail.bucket
-  event_rw           = "Read"
-  trail_region       = "cn-hangzhou"
+  event_rw           = "All"
+  trail_region       = "All"
 }
 
 resource "alicloud_oss_bucket" "trail" {
@@ -20,6 +20,12 @@ resource "alicloud_oss_bucket" "trail" {
     git_repo             = "terragoat"
     yor_trace            = "9ce7077b-8195-4e71-aec6-ed1f769555dc"
     yor_name             = "trail"
+  }
+  transfer_acceleration {
+    enabled = true
+  }
+  versioning {
+    status = "Enabled"
   }
 }
 

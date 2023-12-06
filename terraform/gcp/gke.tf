@@ -19,6 +19,15 @@ resource "google_container_cluster" "workload_cluster" {
       cidr_block = "0.0.0.0/0"
     }
   }
+  enable_intranode_visibility = true
+  master_auth {
+    client_certificate_config {
+      issue_client_certificate = false
+    }
+  }
+  pod_security_policy_config {
+    enabled = true
+  }
 }
 
 resource "google_container_node_pool" "custom_node_pool" {
@@ -26,6 +35,9 @@ resource "google_container_node_pool" "custom_node_pool" {
   location = var.region
 
   node_config {
+    shielded_instance_config {
+      enable_secure_boot = true
+    }
     image_type = "Ubuntu"
   }
 }

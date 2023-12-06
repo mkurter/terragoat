@@ -33,4 +33,10 @@ resource azurerm_kubernetes_cluster "k8s_cluster" {
     yor_trace            = "6103d111-864e-42e5-899c-1864de281fd1"
     yor_name             = "k8s_cluster"
   }
+  sku_tier = "Standard"
+  key_vault_secrets_provider = {
+    secret_rotation_enabled = true
+  }
+  local_account_disabled = true
+  private_cluster_enabled = true
 }
