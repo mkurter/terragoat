@@ -41,6 +41,10 @@ resource azurerm_linux_virtual_machine "linux_machine" {
     }, {
     yor_name = "linux_machine"
   })
+  admin_ssh_key {
+    public_key = "CKV_ANY"
+  }
+  allow_extension_operations = false
 }
 
 resource azurerm_windows_virtual_machine "windows_machine" {
@@ -78,4 +82,6 @@ resource azurerm_windows_virtual_machine "windows_machine" {
     }, {
     yor_name = "windows_machine"
   })
+  allow_extension_operations = false
+  encryption_at_host_enabled = true
 }

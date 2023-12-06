@@ -31,6 +31,11 @@ EOF
     }, {
     yor_name = "web_host"
   })
+  metadata_options {
+    http_tokens = "required"
+  }
+  ebs_optimized = true
+  monitoring = true
 }
 
 resource "aws_ebs_volume" "web_host_storage" {
@@ -145,7 +150,6 @@ resource "aws_subnet" "web_subnet" {
   vpc_id                  = aws_vpc.web_vpc.id
   cidr_block              = "172.16.10.0/24"
   availability_zone       = "${var.region}a"
-  map_public_ip_on_launch = true
 
   tags = merge({
     Name = "${local.resource_prefix.value}-subnet"
@@ -167,7 +171,6 @@ resource "aws_subnet" "web_subnet2" {
   vpc_id                  = aws_vpc.web_vpc.id
   cidr_block              = "172.16.11.0/24"
   availability_zone       = "${var.region}b"
-  map_public_ip_on_launch = true
 
   tags = merge({
     Name = "${local.resource_prefix.value}-subnet2"
@@ -308,6 +311,76 @@ resource "aws_s3_bucket" "flowbucket" {
     }, {
     yor_name = "flowbucket"
   })
+}
+
+
+resource "aws_s3_bucket_versioning" "flowbucket" {
+  bucket = aws_s3_bucket.flowbucket.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "flowbucket" {
+  bucket = aws_s3_bucket.flowbucket.bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+    }
+  }
+}
+
+
+resource "aws_s3_bucket_versioning" "flowbucket" {
+  bucket = aws_s3_bucket.flowbucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket" "flowbucket_destination" {
+  # checkov:skip=CKV_AWS_144:the resource is auto generated to be a destination for replication
+  bucket = aws_s3_bucket.flowbucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_iam_role" "flowbucket_replication" {
+  name = "aws-iam-role"
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_s3_bucket_replication_configuration" "flowbucket" {
+  depends_on = [aws_s3_bucket_versioning.flowbucket]
+  role   = aws_iam_role.flowbucket_replication.arn
+  bucket = aws_s3_bucket.flowbucket.id
+  rule {
+    id = "foobar"
+    status = "Enabled"
+    destination {
+      bucket        = aws_s3_bucket.flowbucket_destination.arn
+      storage_class = "STANDARD"
+    }
+  }
 }
 
 output "ec2_public_dns" {

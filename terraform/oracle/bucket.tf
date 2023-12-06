@@ -6,8 +6,7 @@ resource "oci_objectstorage_bucket" "secretsquirrel" {
   compartment_id        = oci_identity_compartment.tf-compartment.id
   name                  = "myreallysecretstore"
   namespace             = data.oci_objectstorage_namespace.example.namespace
-  object_events_enabled = false
-  access_type           = "ObjectRead"
+  object_events_enabled = true
   metadata              = { "data" = "Blockofdata" }
   storage_tier          = "Standard"
   freeform_tags = {
